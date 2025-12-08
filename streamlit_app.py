@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 # Change this accordingly if deployed on EC2/GCP/Azure later
-BACKEND_URL = "http://localhost:8080/ask"
+BACKEND_URL = "https://medicalchatbot-m3p5.onrender.com"
 
 st.set_page_config(
     page_title="Medical Chatbot",
