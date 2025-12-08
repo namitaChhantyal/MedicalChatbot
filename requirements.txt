@@ -41,3 +41,5 @@ mcp
 exa-py
 
 # -e .
+
+gunicorn
