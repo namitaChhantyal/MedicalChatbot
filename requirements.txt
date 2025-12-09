@@ -1,45 +1,46 @@
-# LangChain core
-langchain
-langchain-core
-langchain-community
-langchain-openai
-langchain-pinecone
-langchain-experimental
-langchain-huggingface
+# Flask and Web Server
+Flask==3.1.2
+gunicorn==21.2.0
+python-dotenv==1.1.1
 
-# Vector database
-pinecone[grpc]
-pinecone-client 
+# LangChain ecosystem
+langchain==0.3.27
+langchain-core==0.3.79
+langchain-community==0.3.31
+langchain-openai==0.3.35
+langchain-pinecone==0.2.12
+langchain-experimental==0.3.4
+langchain-huggingface==0.3.1
+langchain-text-splitters==0.3.11
 
-# Embeddings
-sentence-transformers
-huggingface-hub
+# OpenAI
+openai==2.3.0
 
-# Document loading + splitting
-pypdf
+# Pinecone
+pinecone==7.3.0
+pinecone-client==6.0.0
 
-# OpenAI API
-openai
+# Embeddings + Transformers
+sentence-transformers==5.1.1
+huggingface-hub==0.35.3
+transformers==4.57.1
+torch==2.9.0
 
-Flask
-python-dotenv
+# Document processing
+pypdf==6.1.1
 
-# Evaluation
+# RAG Evaluation
 ragas==0.2.10
 datasets==3.2.0
 
-# Visualization
-matplotlib
-seaborn
-numpy
-pandas
-
-# MCP (Model Context Protocol) support
-mcp
-
 # Web Search
-exa-py
+exa-py==2.0.0
 
-# -e .
+# Analytics & Visualization
+matplotlib==3.10.7
+seaborn==0.13.2
+pandas==2.3.3
+numpy==2.3.4
 
-gunicorn
+# MCP Support
+mcp==1.19.0
