@@ -1,505 +1,519 @@
-# MedicalChatbot
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#medicalchatbot)
+# Complete Setup Guide - Medical Chatbot
 
-## Requirements
+This guide provides detailed step-by-step instructions to set up and run the Medical Chatbot from scratch.
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#requirements)
+---
 
-* Python 3.11 (tested on 3.11.9)
-* pip >= 22
+## Prerequisites
 
-# Medical Chatbot (RAG + Flask)
+Before you begin, ensure you have:
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#medical-chatbot-rag--flask)
+1. **Python 3.11 or higher** installed
 
-A Retrieval-Augmented Generation (RAG) medical chatbot built with:
+   - Check version: `python3 --version`
+   - Download from: https://www.python.org/downloads/
+2. **Git** installed
 
-* **Flask** for the web interface
-* **LangChain** for orchestration
-* **Pinecone** as vector database
-* **OpenAI GPT model** for language generation
-* **Hugging Face embeddings** for document representation
+   - Check version: `git --version`
+   - Download from: https://git-scm.com/downloads
+3. **API Keys** (you'll need these):
 
-## Architecture
+   - OpenAI API Key: https://platform.openai.com/api-keys
+   - Pinecone API Key: https://www.pinecone.io/ (free tier available)
+   - Exa AI API Key: https://exa.ai/ (for web search)
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#architecture)
+---
 
-* **Backend** : Flask web server
-* **LLM** : OpenAI GPT-4o-mini
-* **Vector Database** : Pinecone
-* **Embeddings** : Hugging Face sentence-transformers
-* **Framework** : LangChain
-* **Evaluation** : RAGAS
-* **Ingestion** : MCP (Model Context Protocol)
+## 🔧 Step-by-Step Setup
 
-## File Structure
+### Step 1: Clone the Repository
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#file-structure)
+```bash
+# Clone the repository
+git clone https://github.com/namitaChhantyal/MedicalChatbot.git
 
-### Core Application Files
+# Navigate into the project directory
+cd MedicalChatbot
+```
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#core-application-files)
-
-**`app.py`** - Main Flask application
-
-* Starts web server on port 8080
-* Handles `/ask` endpoint for chat queries
-* Integrates MCP client for dataset ingestion via chat
-* Manages session-based conversation chains
-* Returns answers with source citations
-
-**`store_index.py`** - Vector index creation
-
-* Loads all files from `Data/` directory (PDF, JSON, CSV)
-* Splits documents into chunks (500 chars, 20 overlap)
-* Creates embeddings using Hugging Face model
-* Creates/updates Pinecone index "medicalbot"
-* Required before using the chatbot
-
-**`ingest_dataset.py`** - CLI tool for dataset ingestion
-
-* Ingests datasets via command line
-* Lists ingested datasets
-* Supports JSON, CSV, PDF formats
-* Usage: `python ingest_dataset.py Data/file.json json`
-
-### Source Code (`src/`)
-
-[](https://github.com/namitaChhantyal/MedicalChatbot#source-code-src)
-
-**`src/helper.py`** - Data loading utilities
-
-* `load_pdf_file()` - Loads PDF files
-* `load_json_file()` - Loads JSON files
-* `load_csv_file()` - Loads CSV files
-* `load_mixed_data()` - Loads all formats from directory
-* `text_split()` - Splits documents into chunks
-* `download_hugging_face_embeddings()` - Initializes embedding model
-
-**`src/prompt.py`** - RAG chain builders
-
-* `build_rag_chain()` - Single-turn RAG chain (no memory)
-* `build_conversational_rag_chain()` - Multi-turn RAG chain (with memory)
-* Creates `SourceAwareRetriever` wrapper for source citations
-* Configures OpenAI LLM with medical-focused prompts
-
-**`src/mcp_server.py`** - MCP server implementation
-
-* `MedicalDatasetMCPServer` class - Manages dataset ingestion
-* `ingest_dataset()` - Ingests files (JSON/CSV/PDF)
-* `get_ingested_datasets()` - Lists ingested datasets
-* `_save_metadata_to_disk()` - Persists metadata to `Data/.mcp_metadata.json`
-* `_load_metadata_from_disk()` - Loads metadata on startup
-* Supports MCP protocol functions (optional)
-
-**`src/mcp_client.py`** - MCP client wrapper
-
-* `MCPDatasetClient` class - Client interface for Flask app
-* `ingest_dataset()` - Ingests datasets with path resolution
-* `list_datasets()` - Lists ingested datasets
-* `get_mcp_client()` - Singleton pattern
-* `get_mcp_server_instance()` - Persistent server instance
-
-**`src/download_qa_dataset.py`** - Evaluation dataset downloader
-
-* Downloads MedQA, PubMedQA, HealthQA from HuggingFace
-* Downloads MedQuAD (47,457 QA pairs from 12 NIH sources) from GitHub
-* Creates expanded QA dataset for RAGAS evaluation
-* Saves MedQuAD to `Data/medquad_dataset.json` for indexing
-* Falls back to synthetic dataset if downloads fail
-* Outputs: `docs/evaluation/qa_dataset_expanded.json`
-
-### Frontend Files
-
-[](https://github.com/namitaChhantyal/MedicalChatbot#frontend-files)
-
-**`templates/index.html`** - Chat interface
-
-* HTML structure for chat UI
-* JavaScript for API calls and message display
-* Shows source citations below answers
-
-**`static/style.css`** - Styling for chat interface
-
-### Evaluation Files
-
-[](https://github.com/namitaChhantyal/MedicalChatbot#evaluation-files)
-
-**`docs/evaluation/evaluate_ragas.py`** - RAGAS evaluation script
-
-* Runs QA pairs through RAG chain
-* Calculates faithfulness, answer relevancy, context precision, context recall
-* Outputs: `docs/evaluation/ragas_results.csv`
-
-**`docs/evaluation/qa_dataset.json`** - Original evaluation dataset (15 QA pairs)
-
-**`docs/evaluation/qa_dataset_expanded.json`** - Expanded evaluation dataset (created by download script)
-
-### Data Files (`Data/`)
-
-[](https://github.com/namitaChhantyal/MedicalChatbot#data-files-data)
-
-**`Data/The_GALE_ENCYCLOPEDIA_of_MEDICINE_SECOND.pdf`** - Medical encyclopedia PDF
-
-**`Data/medical_conditions.json`** - Example JSON dataset
-
-**`Data/medical_diseases.csv`** - Example CSV dataset
-
-**`Data/medquad_dataset.json`** - MedQuAD dataset (created by download script)
-
-* Contains 47,457 QA pairs from 12 NIH sources
-* Created when running `python src/download_qa_dataset.py`
-* Can be indexed via `store_index.py` for use as knowledge source
-
-**`Data/.mcp_metadata.json`** - MCP metadata persistence (auto-generated)
-
-### Configuration Files
-
-[](https://github.com/namitaChhantyal/MedicalChatbot#configuration-files)
-
-**`requirements.txt`** - Python dependencies
-
-* Flask, LangChain, Pinecone, OpenAI SDK
-* Sentence transformers, RAGAS
-* MCP SDK for dataset ingestion
-
-**`setup.py`** - Package configuration
-
-**`.env`** - Environment variables (create this)
-
-* `OPENAI_API_KEY` - OpenAI API key
-* `PINECONE_API_KEY` - Pinecone API key
-* `SECRET_KEY` - Flask session secret
-
-## Setup Instructions
-
-[](https://github.com/namitaChhantyal/MedicalChatbot#setup-instructions)
-
-### Step 1: Prerequisites
-
-[](https://github.com/namitaChhantyal/MedicalChatbot#step-1-prerequisites)
-
-* Python 3.11+
-* OpenAI API account
-* Pinecone account
+---
 
 ### Step 2: Create Virtual Environment
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#step-2-create-virtual-environment)
+**On macOS/Linux:**
 
-```shell
-python3.11 -m venv medibot
-source medibot/bin/activate  # Mac/Linux
-# OR
-medibot\Scripts\activate     # Windows
+```bash
+# Create virtual environment
+python3 -m venv medibot
+
+# Activate virtual environment
+source medibot/bin/activate
 ```
 
- **Why** : Isolates project dependencies from system Python.
+**On Windows:**
+
+```bash
+# Create virtual environment
+python -m venv medibot
+
+# Activate virtual environment
+medibot\Scripts\activate
+```
+
+**Verify activation:**
+You should see `(medibot)` at the beginning of your terminal prompt.
+
+---
 
 ### Step 3: Install Dependencies
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#step-3-install-dependencies)
-
-```shell
+```bash
+# Upgrade pip first
 pip install --upgrade pip
+
+# Install all required packages
 pip install -r requirements.txt
 ```
 
- **Why** : Installs all required packages (Flask, LangChain, Pinecone, OpenAI, MCP, etc.).
+**This will install:**
 
-### Step 4: Configure Environment Variables
+- Flask (web server)
+- LangChain (RAG framework)
+- Pinecone (vector database)
+- OpenAI (LLM)
+- Exa (web search)
+- HuggingFace transformers (embeddings)
+- And other dependencies
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#step-4-configure-environment-variables)
+---
 
-Create `.env` file in project root:
+### Step 4: Set Up Environment Variables
 
-```dotenv
-OPENAI_API_KEY=sk-your-key-here
-PINECONE_API_KEY=your-pinecone-key
-SECRET_KEY=random-string-for-sessions
+Create a `.env` file in the project root directory:
+
+```bash
+# Create .env file
+touch .env
 ```
 
- **Why** : API keys are required for LLM and vector database access. Never commit `.env` to git.
+**Edit `.env` and add your API keys:**
 
-### Step 5: Verify Data Files
+```env
+# OpenAI Configuration
+OPENAI_API_KEY="your-openai-api-key-here"
+OPENAI_PROJECT="your-openai-project-id-here"
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#step-5-verify-data-files)
+# Pinecone Configuration
+PINECONE_API_KEY="your-pinecone-api-key-here"
 
-Check `Data/` directory contains files:
+# Exa AI Configuration (for web search)
+EXA_API_KEY="your-exa-api-key-here"
 
-* PDF files (`.pdf`)
-* JSON files (`.json`)
-* CSV files (`.csv`)
-
- **Why** : These files are indexed and used as knowledge sources.
-
-### Step 6: (Optional) Download MedQuAD Dataset
-
-[](https://github.com/namitaChhantyal/MedicalChatbot#step-6-optional-download-medquad-dataset)
-
-```shell
-python src/download_qa_dataset.py
+# Flask Configuration
+SECRET_KEY="your-secret-key-for-sessions"
 ```
 
- **Why** :
+**How to get API keys:**
 
-* Downloads MedQuAD (47,457 QA pairs from 12 NIH sources) from GitHub
-* Creates expanded evaluation dataset (`docs/evaluation/qa_dataset_expanded.json`)
-* Saves full MedQuAD dataset to `Data/medquad_dataset.json` for indexing
-* Adds 10,000+ QA pairs for evaluation
+1. **OpenAI API Key:**
+
+   - Go to https://platform.openai.com/api-keys
+   - Click "Create new secret key"
+   - Copy the key and paste it in `.env`
+2. **Pinecone API Key:**
+
+   - Sign up at https://www.pinecone.io/
+   - Go to "API Keys" in your dashboard
+   - Copy the key and paste it in `.env`
+3. **Exa AI API Key:**
+
+   - Sign up at https://exa.ai/
+   - Get your API key from the dashboard
+   - Copy and paste it in `.env`
+
+---
+
+### Step 5: Prepare Your Data
+
+The chatbot needs medical documents to answer questions.
+
+**Option A: Use Existing Data**
+
+```bash
+# The repository should already have some medical PDFs in the Data/ folder
+ls Data/
+```
+
+**Option B: Add Your Own Medical Documents**
+
+```bash
+# Add PDF, JSON, or CSV files to the Data/ directory
+cp /path/to/your/medical_document.pdf Data/
+```
+
+**Supported formats:**
+
+- `.pdf` - Medical textbooks, research papers
+- `.json` - Structured medical data
+- `.csv` - Tabular medical data
+
+---
+
+### Step 6: Create the Vector Index
+
+This step processes your documents and stores them in Pinecone for fast retrieval.
+
+```bash
+# Run the indexing script
+python3 store_index.py
+```
+
+**What this does:**
+
+1. Reads all files from `Data/` directory
+2. Splits documents into chunks
+3. Creates embeddings using HuggingFace model
+4. Uploads embeddings to Pinecone
 
 **Expected output:**
 
 ```
-Downloading MedQuAD dataset from GitHub...
-Successfully loaded 16407 QA pairs from MedQuAD
-Saved 16407 QA pairs to Data/medquad_dataset.json
-Total QA pairs created: 10000
-```
-
-### Step 7: Create Vector Index
-
-[](https://github.com/namitaChhantyal/MedicalChatbot#step-7-create-vector-index)
-
-```shell
-python store_index.py
-```
-
- **Why** :
-
-* Converts documents to embeddings and stores in Pinecone
-* Makes documents searchable
-* Required before chatbot can answer questions
-* Takes 5-10 minutes on first run
-
-Expected output:
-
-```
-Loading documents from Data/ directory...
-Loaded 774 documents
+Loading documents...
 Splitting documents into chunks...
-Created 6988 text chunks
-Creating Pinecone index: medicalbot
-Uploading embeddings to Pinecone...
-Indexing complete!
+Creating embeddings...
+Uploading to Pinecone...
+✅ Successfully indexed X documents
 ```
 
-### Step 8: Start Application
+**⏱️ Time:** This may take 5-15 minutes depending on the number of documents.
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#step-8-start-application)
+---
 
-```shell
-python app.py
+### Step 7: (Optional) Ingest Additional Datasets
+
+You can add more datasets using the MCP (Model Context Protocol) system:
+
+```bash
+# Ingest a JSON dataset
+python3 ingest_dataset.py Data/medical_conditions.json json
+
+# Ingest a CSV dataset
+python3 ingest_dataset.py Data/diseases.csv csv
+
+# List all ingested datasets
+python3 ingest_dataset.py --list
 ```
 
- **Why** : Starts Flask web server for chat interface.
+**After adding new datasets, re-run the indexing:**
 
-Expected output:
-
-```
- * Running on http://127.0.0.1:8080
+```bash
+python3 store_index.py
 ```
 
-### Step 9: Access Web Interface
+---
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#step-9-access-web-interface)
+### Step 8: Start the Application
 
-Open browser: `http://localhost:8080`
-
- **Why** : Provides user interface for chat interactions.
-
-## Usage
-
-[](https://github.com/namitaChhantyal/MedicalChatbot#usage)
-
-### Chat Interface
-
-[](https://github.com/namitaChhantyal/MedicalChatbot#chat-interface)
-
-**Ask medical questions:**
-
-* "What are the symptoms of diabetes?"
-* "How is hypertension treated?"
-* "What causes asthma?"
-
-**Response includes:**
-
-* Answer from retrieved documents
-* Source citations (filename)
-
-### Dataset Ingestion via Chat
-
-[](https://github.com/namitaChhantyal/MedicalChatbot#dataset-ingestion-via-chat)
-
-**List datasets:**
-
-```
-list datasets
+```bash
+# Start the Flask server
+python3 app.py
 ```
 
-**Ingest dataset:**
+**Expected output:**
 
 ```
-ingest dataset medical_conditions.json
-add file medical_diseases.csv
-load dataset file.pdf
+ * Running on http://0.0.0.0:8080
+ * Debug mode: on
+ * Debugger is active!
 ```
 
-**Supported commands:**
+**The server is now running!** 🎉
 
-* `list datasets` / `show datasets`
-* `ingest dataset <filename>`
-* `add dataset <filename>`
-* `load file <filename>`
-* `import data <filename>`
+---
 
-**After ingestion:**
+### Step 9: Access the Chatbot
 
-* Run `python store_index.py` to update vector index
-* New data becomes searchable
+Open your web browser and go to:
 
-### Dataset Ingestion via CLI
-
-[](https://github.com/namitaChhantyal/MedicalChatbot#dataset-ingestion-via-cli)
-
-**Ingest:**
-
-```shell
-python ingest_dataset.py Data/medical_conditions.json json
+```
+http://localhost:8080
 ```
 
-**List:**
+**You should see:**
 
-```shell
-python ingest_dataset.py --list
+- A chat interface with "Medical Chatbot" header
+- An input box to ask questions
+- A "Send" button
+
+---
+
+## 💬 Using the Chatbot
+
+### Ask Medical Questions
+
+**Example questions:**
+
+```
+What are the symptoms of diabetes?
+How is hypertension treated?
+What causes cancer?
+use exa ai to find me most common diseases
 ```
 
- **Why** : Provides command-line interface for dataset management.
+### What You'll See
 
-## Evaluation (Optional)
+1. **Your question** appears on the right (blue bubble)
+2. **Bot's answer** appears on the left (white bubble)
+3. **Source breakdown** shows where the information came from:
+   - 📚 **RAG Sources**: From your indexed documents
+   - 📊 **MCP**: From ingested datasets
+   - 🌐 **Web Search (Exa AI)**: From live web search
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#evaluation-optional)
+### Non-Medical Questions
 
-### Step 1: Download Expanded QA Dataset
+If you ask non-medical questions:
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#step-1-download-expanded-qa-dataset)
-
-```shell
-python src/download_qa_dataset.py
+```
+Where is New York?
+What's the weather today?
 ```
 
- **Why** : Creates larger evaluation dataset for better performance metrics.
+The bot will respond:
 
-### Step 2: Run Evaluation
-
-[](https://github.com/namitaChhantyal/MedicalChatbot#step-2-run-evaluation)
-
-```shell
-python docs/evaluation/evaluate_ragas.py
+```
+Sorry, I can only answer medical-related questions.
 ```
 
- **Why** : Measures chatbot performance using RAGAS metrics:
+---
 
-* **Faithfulness** : Answer grounded in context?
-* **Answer Relevancy** : Answer relevant to question?
-* **Context Precision** : Retrieved docs relevant?
-* **Context Recall** : Retrieved docs contain answer?
+## 🔍 Troubleshooting
 
-Output: `docs/evaluation/ragas_results.csv`
+### Issue: "Module not found" errors
 
-## Data Flow
+**Solution:**
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#data-flow)
+```bash
+# Make sure virtual environment is activated
+source medibot/bin/activate  # Mac/Linux
+medibot\Scripts\activate     # Windows
 
-1. **Indexing** : `store_index.py` → Loads files → Splits → Embeds → Uploads to Pinecone
-2. **Query** : User question → Embed query → Search Pinecone → Retrieve top documents
-3. **Generation** : Retrieved docs + question → LLM → Answer with citations
-4. **Ingestion** : File → MCP server → Parse → Store metadata → (Run `store_index.py` to index)
+# Reinstall dependencies
+pip install -r requirements.txt
+```
 
-## Troubleshooting
+---
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#troubleshooting)
+### Issue: "API key not found" errors
 
-**"PINECONE_API_KEY is not set"**
+**Solution:**
 
-* Check `.env` file exists and has correct key
+```bash
+# Check if .env file exists
+cat .env
 
-**"ModuleNotFoundError"**
+# Make sure all API keys are set correctly
+# No spaces around the = sign
+# Keys should be in quotes
+```
 
-* Activate virtual environment: `source medibot/bin/activate`
-* Install dependencies: `pip install -r requirements.txt`
+---
 
-**"Index not found"**
+### Issue: "Port 8080 already in use"
 
-* Run `python store_index.py` first
+**Solution:**
 
-**"Port 8080 already in use"**
+```bash
+# Kill the process using port 8080
+lsof -ti:8080 | xargs kill -9
 
-* Change port in `app.py`: `app.run(port=5000)`
+# Or change the port in app.py (last line):
+# app.run(host="0.0.0.0", port=8081, debug=True)
+```
 
-**"File not found" when ingesting**
+---
 
-* Place file in `Data/` directory
-* Use relative path: `medical_conditions.json`
+### Issue: Exa AI not working
 
-**No sources showing**
+**Check the terminal output for:**
 
-* Check Pinecone index has data: Run `store_index.py`
-* Verify documents have source metadata
+```
+🔍 Exa: Searching for '...' with 5 results
+✅ Exa: Found 5 results
+```
 
-**MCP ingestion not persisting**
+**If you see errors:**
 
-* Metadata saves to `Data/.mcp_metadata.json`
-* Both CLI and Flask app read from same file
+1. Verify `EXA_API_KEY` is set in `.env`
+2. Check your Exa AI account has credits
+3. Look at terminal for specific error messages
 
-## Quick Reference
+---
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#quick-reference)
+### Issue: No answers from RAG sources
 
-```shell
-# Setup
+**Solution:**
+
+```bash
+# Re-run the indexing
+python3 store_index.py
+
+# Check Pinecone dashboard to verify index exists
+# Go to https://app.pinecone.io/
+```
+
+---
+
+## 📊 Testing the System
+
+### Test 1: Basic Medical Question
+
+```
+Question: What are the symptoms of anemia?
+
+Expected: Bot provides symptoms with source citations
+```
+
+### Test 2: Web Search
+
+```
+Question: use exa ai to find top causes of cancer
+
+Expected: Bot shows web sources (🌐 Web: 3-5) and provides comprehensive answer
+```
+
+### Test 3: Non-Medical Question
+
+```
+Question: Where is Paris?
+
+Expected: "Sorry, I can only answer medical-related questions."
+```
+
+### Test 4: Check Sources
+
+```
+After any answer, look for:
+- Source breakdown box
+- RAG/MCP/Web counts
+- Clickable links to web sources
+```
+
+---
+
+## 🛑 Stopping the Application
+
+**To stop the server:**
+
+1. Go to the terminal where the server is running
+2. Press `Ctrl + C`
+
+**To deactivate virtual environment:**
+
+```bash
+deactivate
+```
+
+---
+
+## 🔄 Restarting the Application
+
+**Every time you want to use the chatbot:**
+
+```bash
+# 1. Navigate to project directory
+cd /path/to/MedicalChatbot
+
+# 2. Activate virtual environment
+source medibot/bin/activate  # Mac/Linux
+medibot\Scripts\activate     # Windows
+
+# 3. Start the server
+python3 app.py
+
+# 4. Open browser to http://localhost:8080
+```
+
+---
+
+## 📁 Project Structure
+
+```
+MedicalChatbot/
+├── Data/                    # Your medical documents (PDF, JSON, CSV)
+├── src/                     # Source code
+│   ├── helper.py           # Embedding functions
+│   ├── prompt.py           # RAG chain logic
+│   ├── exa_web_search.py   # Exa AI integration
+│   └── mcp_client.py       # MCP dataset management
+├── static/                  # CSS styles
+│   └── style.css
+├── templates/               # HTML templates
+│   └── index.html
+├── app.py                   # Main Flask application
+├── store_index.py          # Indexing script
+├── ingest_dataset.py       # Dataset ingestion
+├── requirements.txt        # Python dependencies
+├── .env                    # API keys (create this)
+└── README.md              # Documentation
+```
+
+---
+
+## 🎯 Quick Start Summary
+
+```bash
+# 1. Clone and navigate
+git clone https://github.com/namitaChhantyal/MedicalChatbot.git
+cd MedicalChatbot
+
+# 2. Create virtual environment
+python3 -m venv medibot
 source medibot/bin/activate
+
+# 3. Install dependencies
 pip install -r requirements.txt
 
-# Index data
-python store_index.py
+# 4. Create .env file with API keys
+touch .env
+# Edit .env and add your API keys
 
-# Start app
-python app.py
+# 5. Index your documents
+python3 store_index.py
 
-# Ingest dataset
-python ingest_dataset.py Data/file.json json
+# 6. Start the app
+python3 app.py
 
-# List datasets
-python ingest_dataset.py --list
-
-# Evaluate
-python docs/evaluation/evaluate_ragas.py
+# 7. Open browser
+# Go to http://localhost:8080
 ```
 
-## File Dependencies
+---
 
-[](https://github.com/namitaChhantyal/MedicalChatbot#file-dependencies)
+## 📞 Support
 
-```
-app.py
-├── src/helper.py (embeddings, loaders)
-├── src/prompt.py (RAG chains)
-├── src/mcp_client.py (MCP client)
-├── templates/index.html (UI)
-└── static/style.css (styles)
+If you encounter issues:
 
-store_index.py
-├── src/helper.py (loaders, embeddings)
-└── .env (API keys)
+1. **Check the terminal output** for error messages
+2. **Verify all API keys** are set correctly in `.env`
+3. **Ensure virtual environment** is activated
+4. **Check Pinecone dashboard** to verify index exists
+5. **Review the logs** in the terminal for debugging info
 
-ingest_dataset.py
-└── src/mcp_server.py (ingestion)
+---
 
-src/mcp_client.py
-└── src/mcp_server.py (server)
+## ✅ Success Checklist
 
-src/mcp_server.py
-└── src/helper.py (loaders)
-```
+- [ ] Python 3.11+ installed
+- [ ] Virtual environment created and activated
+- [ ] All dependencies installed
+- [ ] `.env` file created with all API keys
+- [ ] Documents added to `Data/` folder
+- [ ] `store_index.py` completed successfully
+- [ ] `python3 app.py` running without errors
+- [ ] Browser shows chat interface at `http://localhost:8080`
+- [ ] Bot responds to medical questions
+- [ ] Source breakdown shows RAG/MCP/Web sources
+- [ ] Exa AI web search working (check terminal logs)
+
+**If all items are checked, you're ready to use the Medical Chatbot!** 🎉
